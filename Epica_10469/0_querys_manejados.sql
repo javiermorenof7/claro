@@ -1,5 +1,5 @@
 ------QUERYS Ayuda----------------------------
-
+Hola!!
 --------- Query Datos ----------------------------
 
 SELECT TO_CHAR(RECORD_OPENING_TIME,'DD/MM/YYYY') RECORD_OPENING_TIME ,

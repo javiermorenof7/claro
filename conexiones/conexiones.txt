@@ -1,0 +1,73 @@
+---------------Remoto (Nuevo - ODI - Otros servicios)----------------------------
+
+IP
+100.123.251.140
+
+Usuario
+CLAROCO\SIDWHDES1
+
+Contraseña
+Inteligencia2021$O
+
+-----------------Remoto (Antiguo - DataManagerI - Otros servicios)----------------------
+
+IP
+172.22.85.192:3389
+
+Usuario
+COMCEL\SIDWHDES
+
+Contraseña
+Inteligencia2014$
+
+----------------COGNOS Analytics-------------------------------------------
+
+WDWHCOGNOSPUB01
+
+Credenciales
+Usuario
+DWHPROD
+
+Contraeña
+Dwh_BI_2012#
+
+Acceso Explora
+https://explora.claro.com.co:9305/ibmcognos/bi/?
+
+---------------------NETEZZA---------------------------
+
+DBeaver
+
+Netezza QA 
+
+Host: 10.60.91.43
+Port: 5480
+Database/Schema: DWH_DB
+Username: SIDWHNTZ
+Password: DesarrolloQA2018*
+
+
+Netezza PROD
+
+Host: 10.60.91.37
+Port: 5480
+Database/Schema: DWH_DB_DESARROLLO
+
+--------------------SQL Server----------------------
+
+SQL Server
+ip 172.23.3.233
+port 1600
+User USER_GDWH
+Pass PruebasDWH
+
+----------------------SharePoint claro-------------------------------------
+
+https://claromovilco.sharepoint.com/sites/portalgdwh?e=1%3A7ab0a5abefa0412685223e69d6543b3b
+
+
+-------------------INTRANET factor-----------------------------------------------------
+
+https://factorit.sharepoint.com/sites/MiFIT
+
+

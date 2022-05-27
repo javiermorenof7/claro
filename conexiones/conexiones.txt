@@ -70,4 +70,10 @@ https://claromovilco.sharepoint.com/sites/portalgdwh?e=1%3A7ab0a5abefa0412685223
 
 https://factorit.sharepoint.com/sites/MiFIT
 
+----------------------Gestión de horas-------------------------------------
 
+https://gestionhh.factorit.com:8080/factorit_gestion_horas/inicio
+
+----------------------Mesa de servicios Factor IT-------------------------------------
+
+http://datafactories.factorit.com:9080/glpi/index.php?redirect=ticket_193&noAUTO=1

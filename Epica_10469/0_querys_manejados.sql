@@ -71,11 +71,14 @@ VAL_QCI
 
 ----------------QUERY MUESTRA ---------------------------------------------
 
+ SSELECT * 
+FROM (
 SELECT *
-FROM DB_DWH_DATOS.DATOS.TBL_FACT_DATOS_TRAFICO_202204
-WHERE RECORD_OPENING_TIME LIKE '%2022-04-22%' and PLMNIDENTIFIER NOT LIKE '732%'
-AND UPLINK IS NOT NULL AND DOWNLINK IS NOT NULL AND VAL_QCI IS NOT NULL
-LIMIT 1000000
+FROM DB_DWH_DATOS.DATOS.TBL_FACT_DATOS_TRAFICO_202204 
+LIMIT 1000000000
+) AS A
+WHERE PLMNIDENTIFIER NOT LIKE '732%'AND UPLINK IS NOT NULL 
+AND DOWNLINK IS NOT NULL AND VAL_QCI IS NOT NULL
 
 -----------------------------------------------------------------------------------------------------------------------
 ------------------------------------VOZ------------------------------------------------------------------------------

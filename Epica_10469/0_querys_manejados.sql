@@ -86,7 +86,7 @@ SELECT START_TIME,CAMEL_EXCHANGE_ID,CALLING_NUMBER ,CALLED_NUMBER ,IMSI, SUM(CAL
 FROM(
 
 SELECT *
-FROM DB_DWH_DESARROLLO.VOZ.TBL_TMP_VOZ_EPICA_10469_202204_FINAL
+FROM DB_DWH_DESARROLLO.VOZ.TBL_TMP_VOZ_EPICA_10469_202204
 
 ) AS A
 
@@ -103,8 +103,6 @@ CALL_DURATION INTEGER,
 START_TIME TIMESTAMP,
 IMSI VARCHAR(16) 
 );
-
-
 
 -----------------------------------------------------------------------------------------------------------------------
 ------------------------------------SMS------------------------------------------------------------------------------

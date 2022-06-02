@@ -13,6 +13,12 @@ select
 from _v_sys_columns
 where COLUMN_NAME like upper('%ASESOR%')
 
+-- QUERY PARA CALCULAR VOLUMETRIA
+SET CATALOG DWH_DB;
+Select used_bytes/pow(1024,3) as table_size_in_GB
+from _v_table_storage_stat
+where tablename LIKE 'SMSMMS';
+
 -----------------------------------------------------------------------------------------------------------------------
 ------------------------------------DATOS------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------

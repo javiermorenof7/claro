@@ -117,3 +117,131 @@ AND ESTADO != 'N/A'
 
 
 
+----------------DIMENSIONES     ------------------------------------------------
+SELECT ID_APN 
+	,APNNETWORK
+    ,FECHA_aCTUALIZACION
+FROM DWH_DB.DATOS.TBL_DIM_APNNETWORK_T1 
+
+SELECT ID_PLMNIDENTIFIER 
+ ,PLMNIDENTIFIER 
+ ,FECHA_ACTUALIZACION 
+ FROM DWH_DB.DATOS.TBL_DIM_PLMNIDENTIFIER_T1 
+
+SELECT DATE_KEY
+	,FULL_DATE
+	,DAY_NUM_IN_MONTH
+	,DAY_NAME
+	,WEEK_NUM_OVERALL
+	,WEEK_BEGIN_DATE
+	,WEEK_BEGIN_DATE_KEY
+	,MONTH
+	,MONTH_NAME
+FROM DWH_DB.DRASDWH.TBL_DIM_TIEMPO 
+LIMIT 100
+
+----------------------------------------DIM APPNETWORK------------------------
+SET CATALOG #PRY_DWH.V_0166_DB_DWH_DB;
+INSERT INTO  #PRY_DWH.V_0166_DB_DWH_DB.#PRY_DWH.V_0166_SCH_DATOS.tbl_dim_apnnetwork_t1
+ (id_apn
+ ,apnnetwork
+ ,fecha_actualizacion)
+ SELECT row_number() over(ORDER BY a.apnnetwork) + b.maxskey AS id_apn
+       ,upper(a.apnnetwork) AS apnnetwork
+       ,current_timestamp AS fecha_actualizacion
+ FROM   (SELECT DISTINCT upper(a.apnnetwork) apnnetwork
+         FROM   #PRY_DWH.V_0166_CNX_DWH_DB_STAGE.#PRY_DWH.V_0166_SCH_DATOS.TBL_TMP_DATOS_CONSOLIDADO_DIARIO a
+         LEFT   JOIN  #PRY_DWH.V_0166_DB_DWH_DB.#PRY_DWH.V_0166_SCH_DATOS.tbl_dim_apnnetwork_t1 t ON (UPPER(a.apnnetwork) = t.apnnetwork)
+         WHERE  t.id_apn IS NULL) a
+ CROSS  JOIN (SELECT nvl(MAX(id_apn), 0) maxskey
+              FROM   #PRY_DWH.V_0166_DB_DWH_DB.#PRY_DWH.V_0166_SCH_DATOS.tbl_dim_apnnetwork_t1) b;
+
+------------------------------------  PLMNIDENTIFIER  ------------------------------------------
+SET CATALOG #PRY_DWH.V_0166_DB_DWH_DB;
+INSERT INTO  #PRY_DWH.V_0166_DB_DWH_DB.#PRY_DWH.V_0166_SCH_DATOS.tbl_dim_plmnidentifier_t1
+ (id_plmnidentifier
+ ,plmnidentifier
+ ,fecha_actualizacion)
+ SELECT row_number() over(ORDER BY a.plmnidentifier) + b.maxskey AS id_plmnidentifier
+       ,a.plmnidentifier
+       ,current_timestamp AS fecha_actualizacion
+ FROM   (SELECT DISTINCT a.plmnidentifier
+         FROM   #PRY_DWH.V_0166_CNX_DWH_DB_STAGE.#PRY_DWH.V_0166_SCH_DATOS.TBL_TMP_DATOS_CONSOLIDADO_DIARIO a
+         LEFT   JOIN  #PRY_DWH.V_0166_DB_DWH_DB.#PRY_DWH.V_0166_SCH_DATOS.tbl_dim_plmnidentifier_t1 t ON (nvl(a.plmnidentifier,'-1') = nvl(t.plmnidentifier,'-1'))
+         WHERE  t.ID_plmnidentifier IS NULL) a
+ CROSS  JOIN (SELECT nvl(MAX(ID_plmnidentifier), 0) maxskey
+              FROM    #PRY_DWH.V_0166_DB_DWH_DB.#PRY_DWH.V_0166_SCH_DATOS.tbl_dim_plmnidentifier_t1) b;
+              
+             
+------------------------------------------------- CREACION TABLA USO ---------------------------------
+ 
+CREATE TABLE DATOS.TBL_TMP_DATOS_CONSOLIDADO_DIARIO_PRUEBA2
+AS
+SELECT
+t1.fecha
+,t1.tele_numb
+,t1.record_type
+,t1.served_imsi
+,t1.served_imei
+,t1.plmnidentifier
+,t1.apnnetwork
+,t1.system_type
+,t1.charging_characteristics
+,t1.user_profile
+,t1.rating_group
+,t1.serviceid
+,t1.nodo_med
+,t1.fecha_proceso
+,t1.cantidad_eventos
+,t1.consumo_bytes_uplink
+,t1.consumo_bytes_downlink
+,t1.consumo_bytes_total
+,t1.duracion
+,T1.CELL_IDENTITY
+,T1.LOCATION_AREA_CODE
+from
+(SELECT CAST(to_char(a.record_opening_time, 'yyyymmdd') AS INTEGER) AS fecha
+,a.tele_numb
+,a.record_type
+,a.served_imsi
+,a.served_imei
+,a.plmnidentifier
+,a.LOCATION_AREA_CODE
+,a.CELL_IDENTITY
+,a.apnnetwork
+,a.system_type
+,a.charging_characteristics
+,a.user_profile
+,a.charginclass as rating_group
+,a.serviceid
+,a.nodo_med
+,current_timestamp AS fecha_proceso
+,count(*) AS cantidad_eventos
+,SUM(nvl(a.uplink,0)) AS consumo_bytes_uplink
+,SUM(nvl(a.downlink,0)) AS consumo_bytes_downlink
+,SUM(nvl(a.uplink,0)+ nvl(a.downlink,0)) AS consumo_bytes_total
+,SUM(a.duration) AS duracion
+FROM DB_DWH_DATOS.DATOS.TBL_FACT_DATOS_TRAFICO_202202 a
+WHERE a.record_opening_time between to_timestamp('20220225' ||' 000000','yyyymmdd hh24miss') and
+to_timestamp('20220225' ||' 235959','yyyymmdd hh24miss')
+GROUP BY CAST(to_char(a.record_opening_time, 'yyyymmdd') AS INTEGER)
+,a.tele_numb
+,a.record_type
+,a.served_imsi
+,a.served_imei
+,a.plmnidentifier
+,a.LOCATION_AREA_CODE
+,a.CELL_IDENTITY
+,a.apnnetwork
+,a.system_type
+,a.charging_characteristics
+,a.user_profile
+,a.charginclass
+,a.serviceid
+,a.nodo_med
+,current_timestamp
+ORDER BY tele_numb)t1
+
+
+
+

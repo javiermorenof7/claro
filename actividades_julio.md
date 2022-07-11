@@ -17,14 +17,16 @@
 
 ## 7 Julio
 
-- Se realizo el envio de la documentacion requerida para aprovacion por el comite de arquitectura, una ves se valide y si hay cambios se realizaran con respecto a
-los estandares manejados
+- Se realizo el envio de la documentacion requerida para aprovacion por el comite de arquitectura, una ves se valide y si hay cambios se realizaran con respecto a los estandares manejados
+- Configuración mobaxtrem para BDC, se presento cambios con el nuevo servidor 100
 
 ## 8 Julio
 
 - Se valido una forma de realizar la conexion por medio de .sh sin embargo estamos Validado como se realizaria por Scala
+- Capacitacion interna Herramienta Scala
 
 ## 11 Julio
 
 - Nos enviaron los comentarios sobre la docuemntacion que se esta solicitando, los estamos validando para realizar los cambios deacuerdo a las politicas de claro
+- Modificar mapa fuente destino con los cambios solicitados
 - Seguimos Validando como se realiza la coneccion en Scala correctamente

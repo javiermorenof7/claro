@@ -9,14 +9,22 @@
 
 ## 5 Julio
 
--
+- 
 
 ## 6 Julio
 
+- esta validando y puliendo los ultimos detalles de la documentacion manejada
+
 ## 7 Julio
+
+- Se realizo el envio de la documentacion requerida para aprovacion por el comite de arquitectura, una ves se valide y si hay cambios se realizaran con respecto a
+los estandares manejados
 
 ## 8 Julio
 
+- Se valido una forma de realizar la conexion por medio de .sh sin embargo estamos Validado como se realizaria por Scala
+
 ## 11 Julio
 
-- Nos enviaron los comentarios sobre la docuemntacion que se esta solicitando
+- Nos enviaron los comentarios sobre la docuemntacion que se esta solicitando, los estamos validando para realizar los cambios deacuerdo a las politicas de claro
+- Seguimos Validando como se realiza la coneccion en Scala correctamente

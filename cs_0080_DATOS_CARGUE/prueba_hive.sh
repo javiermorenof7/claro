@@ -45,3 +45,8 @@ V_FECHA="regexp_replace(to_date((date_sub(current_date, 1))),'-','') "
 echo $V_FECHA
 $V_CONF_SPARK "Select cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci, SUM(uplink), SUM(DOWNLINK) from datos.tbl_fact_datos_trafico where fecha_trafico = $V_FECHA and plmnidentifier  NOT LIKE '732%' group by cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci"
 
+#tbl_dim_plmnidentifier_t1
+$V_CONF_SPARK "Select ID_PLMNIDENTIFIER, PLMNIDENTIFIER, FECHA_ACTUALIZACION from datos.tbl_dim_plmnidentifier_t1"
+#tbl_dim_apnnetwork_t1
+$V_CONF_SPARK "Select ID_APN ,APNNETWORK,FECHA_ACTUALIZACION from datos.tbl_dim_apnnetwork_t1"
+

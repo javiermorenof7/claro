@@ -40,7 +40,7 @@ SUM(DOWNLINK) as VAL_BYTES_DOWNLINK from datos.tbl_fact_datos_trafico where fech
 
 # Creacion de consulta utilizando variables 
 
-V_CONF_SPARK="spark-sql --driver-memory 15G --executor-memory 15G --executor-cores 9 --num-executors 15 --queue 0080_0023_ACDRS --name '0080_DATOS_CONCATENAR' -e "
+V_CONF_SPARK="hive --driver-memory 15G --executor-memory 15G --executor-cores 9 --num-executors 15 --queue 0080_0023_ACDRS  --name '0080_DATOS_CONCATENAR' -e "
 V_FECHA="regexp_replace(to_date((date_sub(current_date, 1))),'-','') "
 echo $V_FECHA
 $V_CONF_SPARK "Select cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci, SUM(uplink), SUM(DOWNLINK) from datos.tbl_fact_datos_trafico where fecha_trafico = $V_FECHA and plmnidentifier  NOT LIKE '732%' group by cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci"

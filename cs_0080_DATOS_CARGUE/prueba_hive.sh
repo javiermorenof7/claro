@@ -53,9 +53,17 @@ $V_CONF_HIVE "Select ID_APN ,APNNETWORK,FECHA_ACTUALIZACION from datos.tbl_dim_a
 
 
 # Creacion tabla temporal 
-$V_CONF_SPARK "CREATE TEMPORARY TABLE tmp_tbl_fact_datos_trafico_Pruebas AS  Select cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci, SUM(uplink), SUM(DOWNLINK) from datos.tbl_fact_datos_trafico where fecha_trafico = $V_FECHA and plmnidentifier  NOT LIKE '732%' group by cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci"
+
+TRUNCATE TABLE tmp_tbl_fact_datos_trafico_pruebas
+
+$V_CONF_SPARK "INSERT INTO datos.tmp_tbl_fact_datos_trafico_Pruebas  Select cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci, SUM(uplink), SUM(DOWNLINK) from datos.tbl_fact_datos_trafico where fecha_trafico = $V_FECHA and plmnidentifier  NOT LIKE '732%' group by cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci"
+
+$V_CONF_SPARK "Select cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci, SUM(uplink), SUM(DOWNLINK) INTO #tmp_tbl_fact_datos_trafico_Pruebas from datos.tbl_fact_datos_trafico where fecha_trafico = $V_FECHA and plmnidentifier  NOT LIKE '732%' group by cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci"
+
 
 select *
 from tmp_tbl_fact_datos_trafico_Pruebas
 
-DROP TABLE tmp_tbl_fact_datos_trafico_Pruebas
+
+TRUNCATE TABLE tmp_tbl_fact_datos_trafico_pruebas
+

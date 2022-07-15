@@ -40,13 +40,22 @@ SUM(DOWNLINK) as VAL_BYTES_DOWNLINK from datos.tbl_fact_datos_trafico where fech
 
 # Creacion de consulta utilizando variables 
 
-V_CONF_SPARK="hive --driver-memory 15G --executor-memory 15G --executor-cores 9 --num-executors 15 --queue 0080_0023_ACDRS  --name '0080_DATOS_CONCATENAR' -e "
+V_CONF_HIVE="hive --driver-memory 15G --executor-memory 15G --executor-cores 9 --num-executors 15 --queue 0080_0023_ACDRS  --name '0080_DATOS_CONCATENAR' -e "
+V_CONF_SPARK="spark-sql  --driver-memory 15G --executor-memory 15G --executor-cores 9 --num-executors 15 --queue 0080_0023_ACDRS  --name '0080_DATOS_CONCATENAR' -e "
 V_FECHA="regexp_replace(to_date((date_sub(current_date, 1))),'-','') "
 echo $V_FECHA
 $V_CONF_SPARK "Select cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci, SUM(uplink), SUM(DOWNLINK) from datos.tbl_fact_datos_trafico where fecha_trafico = $V_FECHA and plmnidentifier  NOT LIKE '732%' group by cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci"
 
 #tbl_dim_plmnidentifier_t1
-$V_CONF_SPARK "Select ID_PLMNIDENTIFIER, PLMNIDENTIFIER, FECHA_ACTUALIZACION from datos.tbl_dim_plmnidentifier_t1"
+$V_CONF_HIVE "Select ID_PLMNIDENTIFIER, PLMNIDENTIFIER, FECHA_ACTUALIZACION from datos.tbl_dim_plmnidentifier_t1"
 #tbl_dim_apnnetwork_t1
-$V_CONF_SPARK "Select ID_APN ,APNNETWORK,FECHA_ACTUALIZACION from datos.tbl_dim_apnnetwork_t1"
+$V_CONF_HIVE "Select ID_APN ,APNNETWORK,FECHA_ACTUALIZACION from datos.tbl_dim_apnnetwork_t1"
 
+
+# Creacion tabla temporal 
+$V_CONF_SPARK "CREATE TEMPORARY TABLE tmp_tbl_fact_datos_trafico_Pruebas AS  Select cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci, SUM(uplink), SUM(DOWNLINK) from datos.tbl_fact_datos_trafico where fecha_trafico = $V_FECHA and plmnidentifier  NOT LIKE '732%' group by cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci"
+
+select *
+from tmp_tbl_fact_datos_trafico_Pruebas
+
+DROP TABLE tmp_tbl_fact_datos_trafico_Pruebas

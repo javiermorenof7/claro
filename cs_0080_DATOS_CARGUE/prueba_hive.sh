@@ -52,12 +52,11 @@ $V_CONF_HIVE "Select ID_PLMNIDENTIFIER, PLMNIDENTIFIER, FECHA_ACTUALIZACION from
 $V_CONF_HIVE "Select ID_APN ,APNNETWORK,FECHA_ACTUALIZACION from datos.tbl_dim_apnnetwork_t1"
 
 
-# Creacion tabla temporal 
+# Creacion tabla temporal No se utiliza este metodo 
 
 TRUNCATE TABLE tmp_tbl_fact_datos_trafico_pruebas
 
 $V_CONF_SPARK "INSERT INTO datos.tmp_tbl_fact_datos_trafico_Pruebas  Select cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci, SUM(uplink), SUM(DOWNLINK) from datos.tbl_fact_datos_trafico where fecha_trafico = $V_FECHA and plmnidentifier  NOT LIKE '732%' group by cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci"
-
 $V_CONF_HIVE "select * from tmp_tbl_fact_datos_trafico_pruebas"
 
 select *
@@ -65,12 +64,12 @@ from tmp_tbl_fact_datos_trafico_Pruebas
 
 TRUNCATE TABLE tmp_tbl_fact_datos_trafico_pruebas
 
-#creacion consulta final 
+#creacion consulta final DIM
 
-$V_CONF_HIVE "SELECT a.record_opening_time,b.id_apn,c.id_plmnidentifier,a.val_qci,a.uplink,a.DOWNLINK
+$V_CONF_HIVE "a.record_opening_time AS SK_FEC_TRAFICO,b.id_apn AS SK_APN,c.id_plmnidentifier AS SK_PLMNIDENTIFIER,a.val_qci AS SK_QCI,a.uplink AS VAL_BYTES_UPLINK,a.DOWNLINK AS VAL_BYTES_DOWNLINK,(a.uplink + a.DOWNLINK) AS VAL_BYTES_TOTAL
 FROM  (Select cast(record_opening_time as date) AS record_opening_time, apnnetwork, plmnidentifier, val_qci, SUM(uplink) AS uplink, SUM(DOWNLINK) AS DOWNLINK
 	   from datos.tbl_fact_datos_trafico 
-	   where fecha_trafico = '20220302' and plmnidentifier  NOT LIKE '732%'AND uplink  IS NOT NULL group by cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci) AS a	   
+	   where fecha_trafico = $V_FECHA and plmnidentifier  NOT LIKE '732%'AND uplink  IS NOT NULL group by cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci) AS a	   
 LEFT JOIN DATOS.tbl_dim_apnnetwork_t1 b ON (upper(a.apnnetwork) = upper(b.apnnetwork))
 LEFT JOIN DATOS.tbl_dim_plmnidentifier_t1 c ON (a.plmnidentifier) = (c.plmnidentifier)"
 

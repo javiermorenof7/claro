@@ -66,10 +66,11 @@ TRUNCATE TABLE tmp_tbl_fact_datos_trafico_pruebas
 
 #creacion consulta final DIM
 
-$V_CONF_HIVE "SELECT a.record_opening_time AS SK_FEC_TRAFICO,b.id_apn AS SK_APN,c.id_plmnidentifier AS SK_PLMNIDENTIFIER,a.val_qci AS SK_QCI,a.uplink AS VAL_BYTES_UPLINK,a.DOWNLINK AS VAL_BYTES_DOWNLINK,(a.uplink + a.DOWNLINK) AS VAL_BYTES_TOTAL
-FROM  (Select cast(record_opening_time as date) AS record_opening_time, apnnetwork, plmnidentifier, val_qci, SUM(uplink) AS uplink, SUM(DOWNLINK) AS DOWNLINK
-	   from datos.tbl_fact_datos_trafico 
-	   where fecha_trafico = $V_FECHA and plmnidentifier  NOT LIKE '732%'AND uplink  IS NOT NULL group by cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci) AS a	   
+$V_CONF_HIVE "SELECT a.record_opening_time AS SK_FEC_TRAFICO,b.id_apn AS SK_APN,c.id_plmnidentifier AS SK_PLMNIDENTIFIER,a.val_qci AS SK_QCI,a.uplink AS VAL_BYTES_UPLINK,a.DOWNLINK AS VAL_BYTES_DOWNLINK,(COALESCE (a.uplink,0) + COALESCE (a.DOWNLINK,0)) AS VAL_BYTES_TOTAL
+FROM  (SELECT cast(record_opening_time as date) AS record_opening_time, apnnetwork, plmnidentifier, val_qci, SUM(uplink) AS uplink, SUM(DOWNLINK) AS DOWNLINK
+	   FROM datos.tbl_fact_datos_trafico 
+	   WHERE fecha_trafico = $V_FECHA and plmnidentifier  NOT LIKE '732%'AND (uplink  IS NOT NULL OR DOWNLINK IS NOT NULL) 
+       GROUP BY cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci) AS a	   
 LEFT JOIN DATOS.tbl_dim_apnnetwork_t1 b ON (upper(a.apnnetwork) = upper(b.apnnetwork))
 LEFT JOIN DATOS.tbl_dim_plmnidentifier_t1 c ON (a.plmnidentifier) = (c.plmnidentifier)"
 

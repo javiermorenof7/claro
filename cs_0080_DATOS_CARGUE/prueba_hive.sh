@@ -64,8 +64,33 @@ from tmp_tbl_fact_datos_trafico_Pruebas
 
 TRUNCATE TABLE tmp_tbl_fact_datos_trafico_pruebas
 
-#creacion consulta final TBL_FACT_DATOS_QCI
+#Tabla fisica TBL_FACT_DATOS_QCI_PRUEBAS
 
+CREATE TABLE `datos.TBL_FACT_DATOS_QCI_PRUEBAS`(
+--  `SK_FEC_TRAFICO` string, 
+  `SK_APN` bigint, 
+  `SK_PLMNIDENTIFIER` string, 
+  `SK_QCI` string, 
+  `VAL_BYTES_UPLINK` bigint, 
+  `VAL_BYTES_DOWNLINK` bigint, 
+  `VAL_BYTES_TOTAL` bigint, 
+  `FEC_CARGA_DWH` string)
+PARTITIONED BY ( 
+  `SK_FEC_TRAFICO` string)
+ROW FORMAT SERDE 
+  'org.apache.hadoop.hive.ql.io.orc.OrcSerde' 
+STORED AS INPUTFORMAT 
+  'org.apache.hadoop.hive.ql.io.orc.OrcInputFormat' 
+OUTPUTFORMAT 
+  'org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat'
+TBLPROPERTIES (
+  'bucketing_version'='2', 
+  'last_modified_by'='anonymous', 
+  'last_modified_time'='1654213180', 
+  'transactional_properties'='default', 
+  'transient_lastDdlTime'='1654213180')
+
+#creacion consulta final TBL_FACT_DATOS_QCI
 $V_CONF_HIVE "SELECT a.record_opening_time AS SK_FEC_TRAFICO,b.id_apn AS SK_APN,c.id_plmnidentifier AS SK_PLMNIDENTIFIER,a.val_qci AS SK_QCI,a.uplink AS VAL_BYTES_UPLINK,a.DOWNLINK AS VAL_BYTES_DOWNLINK,(COALESCE (a.uplink,0) + COALESCE (a.DOWNLINK,0)) AS VAL_BYTES_TOTAL ,CURRENT_DATE AS FEC_CARGA_DWH
 FROM  (SELECT cast(record_opening_time as date) AS record_opening_time, apnnetwork, plmnidentifier, val_qci, SUM(uplink) AS uplink, SUM(DOWNLINK) AS DOWNLINK
 	   FROM datos.tbl_fact_datos_trafico 

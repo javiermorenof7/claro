@@ -58,12 +58,19 @@ TRUNCATE TABLE tmp_tbl_fact_datos_trafico_pruebas
 
 $V_CONF_SPARK "INSERT INTO datos.tmp_tbl_fact_datos_trafico_Pruebas  Select cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci, SUM(uplink), SUM(DOWNLINK) from datos.tbl_fact_datos_trafico where fecha_trafico = $V_FECHA and plmnidentifier  NOT LIKE '732%' group by cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci"
 
-$V_CONF_SPARK "Select cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci, SUM(uplink), SUM(DOWNLINK) INTO #tmp_tbl_fact_datos_trafico_Pruebas from datos.tbl_fact_datos_trafico where fecha_trafico = $V_FECHA and plmnidentifier  NOT LIKE '732%' group by cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci"
-
+$V_CONF_HIVE "select * from tmp_tbl_fact_datos_trafico_pruebas"
 
 select *
 from tmp_tbl_fact_datos_trafico_Pruebas
 
-
 TRUNCATE TABLE tmp_tbl_fact_datos_trafico_pruebas
+
+#creacion consulta final 
+
+$V_CONF_HIVE "SELECT a.record_opening_time,b.id_apn,c.id_plmnidentifier,a.val_qci,a.uplink,a.DOWNLINK
+FROM  (Select cast(record_opening_time as date) AS record_opening_time, apnnetwork, plmnidentifier, val_qci, SUM(uplink) AS uplink, SUM(DOWNLINK) AS DOWNLINK
+	   from datos.tbl_fact_datos_trafico 
+	   where fecha_trafico = '20220302' and plmnidentifier  NOT LIKE '732%'AND uplink  IS NOT NULL  AND downlink  IS NOT NULL AND val_qci  IS NOT NULL group by cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci) AS a	   
+LEFT JOIN DATOS.tbl_dim_apnnetwork_t1 b ON (upper(a.apnnetwork) = upper(b.apnnetwork))
+LEFT JOIN DATOS.tbl_dim_plmnidentifier_t1 c ON (a.plmnidentifier) = (c.plmnidentifier)"
 

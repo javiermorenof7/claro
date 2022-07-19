@@ -91,7 +91,8 @@ TBLPROPERTIES (
   'transient_lastDdlTime'='1654213180')
 
 #creacion consulta final TBL_FACT_DATOS_QCI
-$V_CONF_HIVE "SELECT a.record_opening_time AS SK_FEC_TRAFICO,b.id_apn AS SK_APN,c.id_plmnidentifier AS SK_PLMNIDENTIFIER,a.val_qci AS SK_QCI,a.uplink AS VAL_BYTES_UPLINK,a.DOWNLINK AS VAL_BYTES_DOWNLINK,(COALESCE (a.uplink,0) + COALESCE (a.DOWNLINK,0)) AS VAL_BYTES_TOTAL ,CURRENT_DATE AS FEC_CARGA_DWH
+$V_CONF_HIVE "INSERT INTO DATOS.TBL_FACT_DATOS_QCI_PRUEBAS 
+SELECT b.id_apn AS SK_APN,c.id_plmnidentifier AS SK_PLMNIDENTIFIER,a.val_qci AS SK_QCI,a.uplink AS VAL_BYTES_UPLINK,a.DOWNLINK AS VAL_BYTES_DOWNLINK,(COALESCE (a.uplink,0) + COALESCE (a.DOWNLINK,0)) AS VAL_BYTES_TOTAL ,CURRENT_DATE AS FEC_CARGA_DWH,a.record_opening_time AS SK_FEC_TRAFICO
 FROM  (SELECT cast(record_opening_time as date) AS record_opening_time, apnnetwork, plmnidentifier, val_qci, SUM(uplink) AS uplink, SUM(DOWNLINK) AS DOWNLINK
 	   FROM datos.tbl_fact_datos_trafico 
 	   WHERE fecha_trafico = $V_FECHA and plmnidentifier  NOT LIKE '732%'AND (uplink  IS NOT NULL OR DOWNLINK IS NOT NULL) 
@@ -99,7 +100,9 @@ FROM  (SELECT cast(record_opening_time as date) AS record_opening_time, apnnetwo
 LEFT JOIN DATOS.tbl_dim_apnnetwork_t1 b ON (upper(a.apnnetwork) = upper(b.apnnetwork))
 LEFT JOIN DATOS.tbl_dim_plmnidentifier_t1 c ON (a.plmnidentifier) = (c.plmnidentifier)"
 
+# CODIGO JAR
+spark-submit --master yarn --deploy-mode client --class com.claro.App --num-executors 15 --executor-cores 15 --executor-memory 15g --queue 0080_0023_ACDRS --driver-memory 15g --conf spark.sql.shuffle.partitions=1000 --conf spark.default.parallelism=1000 --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.executor.memoryOverhead=1g --conf spark.driver.maxResultSize=15g --conf spark.sql.hive.hiveserver2.jdbc.url="jbdc:hive2://tfm2036-hdpcmtr02.claro.co:2181,tfm2044-hdpcmtr03.claro.co:2181,tfm2403-hdpcmtr04.claro.co:2181,tfm2404-hdpcmtr05.claro.co:2181,tfm2405-hdpcmtr06.claro.co:2181,tfm1913-hdpcmtr01.claro.co:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" "/home/dwhdespro/DESARROLLO_DWH/02_DATOS/Pruebas_EP10469/Prueba-assembly-0.1.0-SNAPSHOT.jar"
+
 
 # CODIGO JAR
-
 spark-submit --master yarn --deploy-mode client --class com.claro.App --num-executors 1 --executor-cores 1 --executor-memory 1g --queue OTROS --driver-memory 1g --conf spark.sql.shuffle.partitions=1000 --conf spark.default.parallelism=1000 --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.executor.memoryOverhead=1g --conf spark.driver.maxResultSize=1g --conf spark.sql.hive.hiveserver2.jdbc.url="jbdc:hive2://tfm2036-hdpcmtr02.claro.co:2181,tfm2044-hdpcmtr03.claro.co:2181,tfm2403-hdpcmtr04.claro.co:2181,tfm2404-hdpcmtr05.claro.co:2181,tfm2405-hdpcmtr06.claro.co:2181,tfm1913-hdpcmtr01.claro.co:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" "/home/dwhdespro/Prueba-assembly-0.1.0-SNAPSHOT.jar"

@@ -106,3 +106,10 @@ spark-submit --master yarn --deploy-mode client --class com.claro.App --num-exec
 
 # CODIGO JAR
 spark-submit --master yarn --deploy-mode client --class com.claro.App --num-executors 1 --executor-cores 1 --executor-memory 1g --queue OTROS --driver-memory 1g --conf spark.sql.shuffle.partitions=1000 --conf spark.default.parallelism=1000 --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.executor.memoryOverhead=1g --conf spark.driver.maxResultSize=1g --conf spark.sql.hive.hiveserver2.jdbc.url="jbdc:hive2://tfm2036-hdpcmtr02.claro.co:2181,tfm2044-hdpcmtr03.claro.co:2181,tfm2403-hdpcmtr04.claro.co:2181,tfm2404-hdpcmtr05.claro.co:2181,tfm2405-hdpcmtr06.claro.co:2181,tfm1913-hdpcmtr01.claro.co:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" "/home/dwhdespro/Prueba-assembly-0.1.0-SNAPSHOT.jar"
+
+# Actualizar dimension TBL_ADMON_TABLAS_BDC
+
+INSERT INTO TBL_ADMON_TABLAS_BDC 
+(TECNOLOGIA_ORIGEN, TECNOLOGIA_DESTINO, BD_ORIGEN, BD_DESTINO, ESQUEMA_ORIGEN, ESQUEMA_DESTINO, HORA_EJECUCION, VAL_CANTIDAD_FUENTE, VAL_CANTIDAD_DESTINO, TABLA_ORIGEN, TABLA_DESTINO, CAMPOS_TABLE, CAMPOS_INDEX, HORA_INI, HORA_FIN, DES_PROCESO, REGLA_CALIDAD, COD_TRUNCATE, CONDICION_SELECT, CONDICION_DELETE, FEC_CARGA_DWH, FEC_ACTUALIZACION) 
+VALUES 
+('NETEZZA','HIVE','DWH_DB','DBC','DATOS','DATOS',15,0,0,'TBL_DIM_APNNETWORK_T1','TBL_DIM_APNNETWORK_T1','ID_APN,APNNETWORK,FECHA_ACTUALIZACION','ID_APN',NULL,NULL,'PRUEBAS_TECNICAS_DIM_APN','%','TRUE','','','',GETDATE());

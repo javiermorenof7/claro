@@ -66,11 +66,11 @@ TRUNCATE TABLE tmp_tbl_fact_datos_trafico_pruebas
 
 #Tabla fisica TBL_FACT_DATOS_QCI_PRUEBAS
 
-CREATE TABLE `datos.TBL_FACT_DATOS_QCI_PRUEBAS`(
+CREATE TABLE `desarrollo.TBL_FACT_DATOS_QCI_PRUEBAS`(
 --  `SK_FEC_TRAFICO` string, 
-  `SK_APN` bigint, 
-  `SK_PLMNIDENTIFIER` string, 
-  `SK_QCI` string, 
+  `SK_APN` smallint, 
+  `SK_PLMNIDENTIFIER` smallint, 
+  `VAL_QCI` smallint, 
   `VAL_BYTES_UPLINK` bigint, 
   `VAL_BYTES_DOWNLINK` bigint, 
   `VAL_BYTES_TOTAL` bigint, 

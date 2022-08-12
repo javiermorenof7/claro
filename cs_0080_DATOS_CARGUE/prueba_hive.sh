@@ -90,6 +90,18 @@ TBLPROPERTIES (
   'transactional_properties'='default', 
   'transient_lastDdlTime'='1654213180')
 
+#tabla remporal
+
+CREATE TABLE `desarrollo.Tmp_TBL_FACT_DATOS_QCI_PRUEBAS`(
+  `SK_APN` smallint, 
+  `SK_PLMNIDENTIFIER` smallint, 
+  `COD_QCI` smallint, 
+  `VAL_BYTES_UPLINK` bigint, 
+  `VAL_BYTES_DOWNLINK` bigint, 
+  `VAL_BYTES_TOTAL` bigint, 
+  `FEC_CARGA_DWH` string,
+  `SK_FEC_TRAFICO` string)
+  
 #creacion consulta final TBL_FACT_DATOS_QCI
 $V_CONF_HIVE "INSERT INTO DATOS.TBL_FACT_DATOS_QCI_PRUEBAS 
 SELECT b.id_apn AS SK_APN,c.id_plmnidentifier AS SK_PLMNIDENTIFIER,a.val_qci AS SK_QCI,a.uplink AS VAL_BYTES_UPLINK,a.DOWNLINK AS VAL_BYTES_DOWNLINK,(COALESCE (a.uplink,0) + COALESCE (a.DOWNLINK,0)) AS VAL_BYTES_TOTAL ,CURRENT_DATE AS FEC_CARGA_DWH,a.record_opening_time AS SK_FEC_TRAFICO

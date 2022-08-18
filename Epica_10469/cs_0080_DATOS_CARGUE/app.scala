@@ -48,8 +48,12 @@ object App {
        
        val UNION2_DF = UNION1_DF.join(PLMNI_DF,UNION1_DF("plmnidentifier") === PLMNI_DF("plmnidentifier"),"left").drop("DESCRIPCION_PLMNIDENTIFIER").drop("FECHA_ACTUALIZACION").drop("PLMNIDENTIFIER").drop("apnnetwork")
        //UNION2_DF.show(50,false)
+       UNION2_DF.createOrReplaceTempView("UNION2")
+
+       val DF_FINAL = ss.sql("""SELECT id_apn SK_APN, ID_PLMNIDENTIFIER sk_plmnidentifier,VAL_QCI,VAL_BYTES_UPLINK,VAL_BYTES_DOWNLINK,VAL_BYTES_TOTAL,FEC_CARGA_DWH ,SK_FEC_TRAFICO 
+                                 FROM UNION2""")
           
-       UNION2_DF.write.saveAsTable("desarrollo.Tmp_TBL_FACT_DATOS_QCI_PRUEBAS4") // si no existe la tabla la crea
+       DF_FINAL.write.saveAsTable("desarrollo.Tmp_TBL_FACT_DATOS_QCI_PRUEBAS4") // si no existe la tabla la crea
        //DatosTrafDF.write.insertInto("desarrollo.Tmp_TBL_FACT_DATOS_QCI_PRUEBAS") // insertar datos en tabla existente
 
 

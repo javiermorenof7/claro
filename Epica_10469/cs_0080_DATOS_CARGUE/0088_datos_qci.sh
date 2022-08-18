@@ -22,10 +22,10 @@ then
     echo "Proceso esta actualmente corriendo." && exit
 fi
 
-/usr/jdk64/jdk1.8.0_112/bin/java -jar /DWH/99_ADMINISTRACION/0091_ADMON_SISNOT/02_BATS/0091_extrae_parametros_prm_comcel.jar qa JP_0166_DATOS_TRAFICO_MEDIADO txt /DWH/DESARROLLO_DWH/02_DATOS/0166_DATOS_TRAFICO_MEDIADO/03_FUENTES/0166_VARIABLES_SISNOT.txt
+/usr/jdk64/jdk1.8.0_112/bin/java -jar /DWH/99_ADMINISTRACION/0091_ADMON_SISNOT/02_BATS/0091_extrae_parametros_prm_comcel.jar qa JP_0080_DATOS_QCI txt /home/dwhdespro/DESARROLLO_DWH/02_DATOS/Pruebas_EP10469/03_FUENTES/prueba.txt
 
 
-file_var="/DWH/DESARROLLO_DWH/02_DATOS/0166_DATOS_TRAFICO_MEDIADO/03_FUENTES/0166_VARIABLES_SISNOT.txt"
+file_var="/home/dwhdespro/DESARROLLO_DWH/02_DATOS/Pruebas_EP10469/03_FUENTES/prueba.txt"
 
 V_0166_REPROCESO="$(echo -e "$(cut -d '|' -f5 <<<$(grep V_0166_REPROCESO $file_var))" | tr -d '[:space:]')"
 V_0166_FECHA_REPROCESO="$(echo -e "$(cut -d'|' -f5 <<<$(grep V_0166_FECHA_REPROCESO $file_var))" | tr -d '[:space:]')"
@@ -36,13 +36,13 @@ echo $V_0166_FECHA_REPROCESO
 #****************************
 #Configuraci?n Aplicacion
 #****************************
-job_name="JP_0166_DATOS_TRAFICO_MEDIADO"
-app_name="0166_DATOS_TRAFICO_MEDIADO"
+job_name="JP_0080_DATOS_QCI"
+app_name="0080_DATOS_QCI"
 main_class="App"
-jar_name="0166_DATOS_TRAFICO_MEDIADO-assembly-0.1.jar"
+jar_name="Prueba-NIFI.jar"
 queue="0573_SALTO_CUANTICO"
 path_bats=$path_proceso
-path_fuentes="/DWH/DESARROLLO_DWH/02_DATOS/0166_DATOS_TRAFICO_MEDIADO/03_FUENTES/"
+path_fuentes="/home/dwhdespro/DESARROLLO_DWH/02_DATOS/Pruebas_EP10469/03_FUENTES/"
 path_log=${path_fuentes}/${app_name}_`date +\%Y\%m\%d\%H\%M`.log
 
 #****************************
@@ -77,7 +77,7 @@ echo $hora "Ruta proceso: "${path_proceso}
 #****************************
 #Ejecuci?n del proceso de Consolidación
 #****************************
-spark-submit --name "0166_DATOS_TRAFICO_MEDIADO" \
+spark-submit --name "0080_DATOS_QCI" \
 --master yarn \
 --class ${main_class} \
 --num-executors ${executors} \

@@ -66,17 +66,16 @@ TRUNCATE TABLE tmp_tbl_fact_datos_trafico_pruebas
 
 #Tabla fisica TBL_FACT_DATOS_QCI_PRUEBAS
 
-CREATE TABLE `desarrollo.TBL_FACT_DATOS_QCI_PRUEBAS`(
---  `SK_FEC_TRAFICO` string, 
-  `SK_APN` smallint, 
-  `SK_PLMNIDENTIFIER` smallint, 
-  `COD_QCI` smallint, 
-  `VAL_BYTES_UPLINK` bigint, 
-  `VAL_BYTES_DOWNLINK` bigint, 
-  `VAL_BYTES_TOTAL` bigint, 
-  `FEC_CARGA_DWH` string)
+CREATE TABLE `desarrollo.tbl_fact_datos_qci_pruebas`(
+  `sk_apn` smallint, 
+  `sk_plmnidentifier` smallint, 
+  `val_qci` smallint, 
+  `val_bytes_uplink` bigint, 
+  `val_bytes_downlink` bigint, 
+  `val_bytes_total` bigint, 
+  `fec_carga_dwh` string)
 PARTITIONED BY ( 
-  `SK_FEC_TRAFICO` string)
+  `sk_fec_trafico` string)
 ROW FORMAT SERDE 
   'org.apache.hadoop.hive.ql.io.orc.OrcSerde' 
 STORED AS INPUTFORMAT 
@@ -85,10 +84,7 @@ OUTPUTFORMAT
   'org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat'
 TBLPROPERTIES (
   'bucketing_version'='2', 
-  'last_modified_by'='anonymous', 
-  'last_modified_time'='1654213180', 
-  'transactional_properties'='default', 
-  'transient_lastDdlTime'='1654213180')
+  'transactional'='false');
 
 #tabla remporal
 

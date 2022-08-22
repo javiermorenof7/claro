@@ -23,7 +23,7 @@ id_ejecucion=${1}
 #Configuración Aplicacion
 #****************************
 job_name="JP_0080_DATOS_QCI"
-app_name="0166_DATOS_TRAFICO_MEDIADO"
+app_name="JP_0080_DATOS_QCI_APP"
 main_class="com.claro.App"
 jar_name="0080_DATOS_CARGUE_QCI-assembly-0.1.0-SNAPSHOT.jar"
 queue="OTROS"

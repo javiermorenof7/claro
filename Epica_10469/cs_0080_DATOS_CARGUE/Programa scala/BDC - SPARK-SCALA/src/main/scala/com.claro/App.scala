@@ -48,6 +48,7 @@ object App {
     val job_name: String = "JP_0080_DATOS_QCI"
     val APP_NAME = "JP_0080_DATOS_QCI_APP"
     val v_fecha="regexp_replace(to_date((date_sub(current_date, 3))),'-','') "
+    val v_fechan="select  (to_date(date_sub(current_date, 3)))"
     val database="datos"
     
 
@@ -68,6 +69,14 @@ object App {
 
       inicio_proceso(path_ejecuta_escenario, repo_sisnot, job_name)
       //===============================================
+      val CantidadReg=ss.sql("""SELECT * from  desarrollo.tbl_fact_dato_qci
+                              WHERE sk_fec_trafico =(""" + v_fechan + """)""")
+
+      //val CantidadReg2=ss.sql("delete from desarrollo.tbl_fact_dato_qci where sk_apn =1")
+      //sys.exit(0)
+
+      if (CantidadReg.count() == 0) {
+
       val DatosTrafDF = ss.sql("""SELECT  UPPER (apnnetwork) apnnetwork, plmnidentifier, val_qci VAL_QCI, SUM(uplink) VAL_BYTES_UPLINK, SUM(DOWNLINK) VAL_BYTES_DOWNLINK, ( COALESCE(SUM(uplink),0) + COALESCE(SUM(DOWNLINK),0)) VAL_BYTES_TOTAL,CURRENT_DATE AS FEC_CARGA_DWH ,cast(record_opening_time as date) SK_FEC_TRAFICO
                           FROM """ + database + """.tbl_fact_datos_trafico 
                           WHERE fecha_trafico = """ + v_fecha + """ and plmnidentifier  NOT LIKE '732%' AND (uplink  IS NOT NULL OR DOWNLINK IS NOT NULL) 
@@ -91,6 +100,13 @@ object App {
        val DF_FINAL = ss.sql("""INSERT Into desarrollo.tbl_fact_dato_qci
                                 SELECT id_apn, ID_PLMNIDENTIFIER ,VAL_QCI,VAL_BYTES_UPLINK,VAL_BYTES_DOWNLINK,VAL_BYTES_TOTAL,FEC_CARGA_DWH ,SK_FEC_TRAFICO 
                                 FROM UNION2""")
+
+      
+      }
+      else {
+        println("+\n Ya se encuentran registros para la fecha de trafico a procesar \n+")
+      }
+      
 
       fin_proceso(path_ejecuta_escenario, repo_sisnot, job_name)
       log(APP_NAME + " End Process Spark")

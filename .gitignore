@@ -2,3 +2,5 @@
 null
 .metals
 target
+.vscode
+.bloop

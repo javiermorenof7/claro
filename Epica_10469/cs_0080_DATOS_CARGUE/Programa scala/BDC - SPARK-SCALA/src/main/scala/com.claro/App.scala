@@ -106,7 +106,7 @@ object App {
       else {
         println("+\n Ya se encuentran registros para la fecha de trafico a procesar \n+")
       }
-      
+      // Vamos bien
 
       fin_proceso(path_ejecuta_escenario, repo_sisnot, job_name)
       log(APP_NAME + " End Process Spark")

@@ -154,9 +154,9 @@ WHERE FK_PROC_OPER  = 43509
 
 
 ----------------------QUERY VISTA -----------------------------------------------
-CREATE VIEW  desarrollo.vw_tbl_dim_tiempo
+CREATE OR REPLACE VIEW  desarrollo.vw_tbl_dim_tiempo
 AS 
 
-select date_key ,full_date ,day_name ,`month` ,month_name ,`year`,yearmo ,inicio_fin_semana  
+select date_key ,full_date ,day_name ,`month` ,month_name ,`year`,yearmo ,inicio_fin_semana,day_of_week,week_begin_date  
 from drasdwh.tbl_dim_tiempo
 where full_date BETWEEN  (select to_date((date_sub(current_date,90))))  and (select to_date((date_sub(current_date,1))))

@@ -74,7 +74,7 @@ CREATE TABLE `desarrollo.tbl_fact_dato_qci`(
   `val_bytes_downlink` bigint, 
   `val_bytes_total` bigint, 
   `fec_carga_dwh` string,
-  `sk_fec_trafico` smallint)
+  `sk_fec_trafico` int)
 ROW FORMAT SERDE 
   'org.apache.hadoop.hive.ql.io.orc.OrcSerde' 
 STORED AS INPUTFORMAT 

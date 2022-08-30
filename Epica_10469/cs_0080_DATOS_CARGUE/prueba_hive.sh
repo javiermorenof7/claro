@@ -66,16 +66,15 @@ TRUNCATE TABLE tmp_tbl_fact_datos_trafico_pruebas
 
 #Tabla fisica TBL_FACT_DATOS_QCI_PRUEBAS
 
-CREATE TABLE `desarrollo.tbl_fact_datos_qci_pruebas`(
+CREATE TABLE `desarrollo.tbl_fact_dato_qci`(
   `sk_apn` smallint, 
   `sk_plmnidentifier` smallint, 
   `val_qci` smallint, 
   `val_bytes_uplink` bigint, 
   `val_bytes_downlink` bigint, 
   `val_bytes_total` bigint, 
-  `fec_carga_dwh` string)
-PARTITIONED BY ( 
-  `sk_fec_trafico` string)
+  `fec_carga_dwh` string,
+  `sk_fec_trafico` smallint)
 ROW FORMAT SERDE 
   'org.apache.hadoop.hive.ql.io.orc.OrcSerde' 
 STORED AS INPUTFORMAT 

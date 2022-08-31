@@ -24,11 +24,9 @@ id_ejecucion=${1}
 
 file_var="/DWH/DESARROLLO_DWH/02_DATOS/0080_DATOS_CARGUE_QCI/03_FUENTES/0080_VARIABLES_SISNOT.txt"
 
-V_0080_FECHA_PROCESO="$(echo -e "$(cut -d '|' -f5 <<<$(grep V_0080_FECHA_PROCESO $file_var))" | tr -d '[:space:]')"
-JP_0080_DATOS_QCI="$(echo -e "$(cut -d'|' -f5 <<<$(grep JP_0080_DATOS_QCI $file_var))" | tr -d '[:space:]')"
+V_DIAS_ATRASO="$(echo -e "$(cut -d'|' -f5 <<<$(grep V_DIAS_ATRASO $file_var))" | tr -d '[:space:]')"
 
-echo $V_0080_FECHA_PROCESO
-echo $JP_0080_DATOS_QCI
+echo "Dias atras para reproceso:" $V_DIAS_ATRASO
 
 #****************************
 #Configuración Aplicacion
@@ -64,15 +62,15 @@ path_log=${path_fuentes}/${temp_folder}/${app_name}_`date +\%Y\%m\%d\%H\%M`.log
 #****************************
 #Configuración Fecha Proceso
 #****************************
-fecha=$(date -d "yesterday 13:00" '+%Y-%m-%d %H:%M:%S')
+fecha=$(date -d "today 13:00" '+%Y-%m-%d %H:%M:%S')
 fecha_YYYYMMDD="$(date -d "${fecha}" +'%Y%m%d')"
 #fecha_YYYYMMDD="20220822"
 echo "Ruta proceso: "${path_proceso}
-echo "Fecha proceso: "${fecha_YYYYMMDD}
+echo "Fecha carga: "${fecha_YYYYMMDD}
 #****************************
 #Spark Submit
 #****************************
-spark-submit --queue ${queue} --master yarn --class ${main_class} --num-executors ${executors} --executor-cores ${cores} --executor-memory ${executorMemory} --driver-memory ${driverMemory} --conf spark.port.maxRetries=100 --conf spark.executor.memoryOverhead=24336 --conf spark.driver.maxResultSize=4g --conf spark.default.parallelism=3000 --conf spark.sql.shuffle.partitions=3000 --conf spark.sql.hive.hiveserver2.jdbc.url="jdbc:hive2://tfm2044-hdpcmtr03.claro.co:2181,tfm2403-hdpcmtr04.claro.co:2181,tfm2404-hdpcmtr05.claro.co:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" --conf spark.datasource.hive.warehouse.metastoreUri=thrift://tfm2403-hdpcmtr04.claro.co:9083,thrift://tfm2044-hdpcmtr03.claro.co:9083 --conf spark.hadoop.hive.llap.daemon.service.hosts=@llap0 --conf spark.hadoop.hive.zookeeper.quorum=tfm2044-hdpcmtr03.claro.co:2181,tfm2403-hdpcmtr04.claro.co:2181,tfm2404-hdpcmtr05.claro.co:2181 --conf spark.hadoop.metastore.catalog.default=hive  --conf spark.datasource.hive.warehouse.load.staging.dir=/tmp --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.ui.port=4049 ${path_proceso}/${jar_name} --app_name ${app_name} --job_name ${job_name} --path_extrae_pr ${path_extrae_pr} --path_ejecuta_escenario ${path_ejecuta_escenario} --ext ${ext} --temp_folder ${temp_folder} --sisnot_repositorio ${sisnot_repositorio} --ambiente_sisnot_variables ${ambiente_sisnot_variables} --ambiente_sisnot_notificaciones ${ambiente_sisnot_notificaciones} --path_fuentes ${path_fuentes} --fecha_proceso ${fecha_YYYYMMDD} --id_ejecucion 1 --database ${database} --V_0080_FECHA_PROCESO ${V_0080_FECHA_PROCESO} #>> ${path_log}
+spark-submit --queue ${queue} --master yarn --class ${main_class} --num-executors ${executors} --executor-cores ${cores} --executor-memory ${executorMemory} --driver-memory ${driverMemory} --conf spark.port.maxRetries=100 --conf spark.executor.memoryOverhead=24336 --conf spark.driver.maxResultSize=4g --conf spark.default.parallelism=3000 --conf spark.sql.shuffle.partitions=3000 --conf spark.sql.hive.hiveserver2.jdbc.url="jdbc:hive2://tfm2044-hdpcmtr03.claro.co:2181,tfm2403-hdpcmtr04.claro.co:2181,tfm2404-hdpcmtr05.claro.co:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2" --conf spark.datasource.hive.warehouse.metastoreUri=thrift://tfm2403-hdpcmtr04.claro.co:9083,thrift://tfm2044-hdpcmtr03.claro.co:9083 --conf spark.hadoop.hive.llap.daemon.service.hosts=@llap0 --conf spark.hadoop.hive.zookeeper.quorum=tfm2044-hdpcmtr03.claro.co:2181,tfm2403-hdpcmtr04.claro.co:2181,tfm2404-hdpcmtr05.claro.co:2181 --conf spark.hadoop.metastore.catalog.default=hive  --conf spark.datasource.hive.warehouse.load.staging.dir=/tmp --conf spark.serializer=org.apache.spark.serializer.KryoSerializer --conf spark.ui.port=4049 ${path_proceso}/${jar_name} --app_name ${app_name} --job_name ${job_name} --path_extrae_pr ${path_extrae_pr} --path_ejecuta_escenario ${path_ejecuta_escenario} --ext ${ext} --temp_folder ${temp_folder} --sisnot_repositorio ${sisnot_repositorio} --ambiente_sisnot_variables ${ambiente_sisnot_variables} --ambiente_sisnot_notificaciones ${ambiente_sisnot_notificaciones} --path_fuentes ${path_fuentes} --fecha_proceso ${fecha_YYYYMMDD} --id_ejecucion 1 --database ${database} --V_DIAS_ATRASO ${V_DIAS_ATRASO} #>> ${path_log}
 
 
 #echo 'Fin proceso Spark' >> $path_log

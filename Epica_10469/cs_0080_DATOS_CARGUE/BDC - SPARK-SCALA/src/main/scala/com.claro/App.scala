@@ -39,10 +39,10 @@ object App {
     val id_ejecucion: String = parametros.get('id_ejecucion).get.toString
     val database: String = parametros.get('database).get.toString
     val repo_sisnot = ambiente_sisnot_notificaciones + " " + sisnot_repositorio
-    val v_fechan="select  (to_date(date_sub(current_date, 1)))" // SE ELIMINA CUANDO SE CAMBIE EL TIPO DE DATO DE SK_FEC_TRAFICO 
+    val V_DIAS_ATRASO: String = parametros.get('V_DIAS_ATRASO).get.toString
     
-    //val fecha_sh="regexp_replace(to_date((date_sub(current_date, 1))),'-','') "
-    //val database="datos"
+    val v_fecha="""regexp_replace(to_date((date_sub(current_date,""" + V_DIAS_ATRASO + """))),'-','') """
+
     
     log(APP_NAME + " Start Process Spark")
     log("id_ejecucion: " + id_ejecucion)
@@ -56,29 +56,40 @@ object App {
       .config("spark.sql.files.ignoreCorruptFiles", "true")
       .getOrCreate()
 
-       
      try {
 
       inicio_proceso(path_ejecuta_escenario, repo_sisnot, job_name)
-      //===============================================
-      val CantidadReg=ss.sql("""SELECT * from  desarrollo.tbl_fact_dato_qci
-                              WHERE sk_fec_trafico =(""" + v_fechan + """)""")
+      //=================================================================================
+      //=====Validar si ya se encuentran registros para la fecha de proceso============== 
+      //=================================================================================
+       val CantidadReg=ss.sql("""SELECT * from  desarrollo.tbl_fact_dato_qci
+                              WHERE sk_fec_trafico =""" + v_fecha )
 
-      //sys.exit(0)
+       if (CantidadReg.count() == 0) {
 
-      if (CantidadReg.count() == 0) {
-
-      val DatosTrafDF = ss.sql("""SELECT  UPPER (apnnetwork) apnnetwork, plmnidentifier, val_qci VAL_QCI, SUM(uplink) VAL_BYTES_UPLINK, SUM(DOWNLINK) VAL_BYTES_DOWNLINK, ( COALESCE(SUM(uplink),0) + COALESCE(SUM(DOWNLINK),0)) VAL_BYTES_TOTAL,CURRENT_DATE AS FEC_CARGA_DWH ,cast(record_opening_time as date) SK_FEC_TRAFICO
-                          FROM """ + database + """.tbl_fact_datos_trafico 
-                          WHERE fecha_trafico = """ + fecha_sh + """ and plmnidentifier  NOT LIKE '732%' AND (uplink  IS NOT NULL OR DOWNLINK IS NOT NULL) 
-                          group by cast(record_opening_time as date), apnnetwork, plmnidentifier, val_qci """)
-        
        val APN_DF= ss.sql("""SELECT id_apn, UPPER (apnnetwork) apnnetwork, fecha_actualizacion 
                           FROM """ + database + """.tbl_dim_apnnetwork_t1""") 
-       val PLMNI_DF= ss.sql("""SELECT ID_PLMNIDENTIFIER,PLMNIDENTIFIER,DESCRIPCION_PLMNIDENTIFIER,FECHA_ACTUALIZACION 
+      //=================================================================================
+      //=====Validar si las dimensiones contienen registros============================== 
+      //=================================================================================
+       if (APN_DF.count() == 0) {
+          println("+\n ALARMA: No se encuentra información en la tabla tbl_dim_apnnetwork_t1 \n+")
+          sys.exit(0)
+       }
+
+       val PLMNI_DF= ss.sql("""SELECT ID_PLMNIDENTIFIER,PLMNIDENTIFIER,FECHA_ACTUALIZACION 
                           FROM  """ + database + """.tbl_dim_plmnidentifier_t1""") 
 
-       
+       if (PLMNI_DF.count() == 0) {
+          println("+\n ALARMA: No se encuentra información en la tabla tbl_dim_plmnidentifier_t1 \n+")
+          sys.exit(0)
+       }
+
+      val DatosTrafDF = ss.sql("""SELECT  UPPER (apnnetwork) apnnetwork, plmnidentifier, val_qci VAL_QCI, SUM(uplink) VAL_BYTES_UPLINK, SUM(DOWNLINK) VAL_BYTES_DOWNLINK, ( COALESCE(SUM(uplink),0) + COALESCE(SUM(DOWNLINK),0)) VAL_BYTES_TOTAL,CURRENT_DATE AS FEC_CARGA_DWH ,fecha_trafico SK_FEC_TRAFICO
+                          FROM """ + database + """.tbl_fact_datos_trafico 
+                          WHERE fecha_trafico = """ + v_fecha + """ and plmnidentifier  NOT LIKE '732%' AND (uplink  IS NOT NULL OR DOWNLINK IS NOT NULL) 
+                          group by fecha_trafico, apnnetwork, plmnidentifier, val_qci """)
+
        DatosTrafDF.createOrReplaceTempView("DatosTraf")
        APN_DF.createOrReplaceTempView("APN")
        
@@ -93,7 +104,6 @@ object App {
                                 SELECT id_apn, ID_PLMNIDENTIFIER ,VAL_QCI,VAL_BYTES_UPLINK,VAL_BYTES_DOWNLINK,VAL_BYTES_TOTAL,FEC_CARGA_DWH ,SK_FEC_TRAFICO 
                                 FROM UNION2""")
 
-      
       }
       else {
         println("+\n ALARMA: Se encuentra información para la fecha de trafico a procesar \n+")
@@ -106,6 +116,7 @@ object App {
       println(java.time.LocalDate.now)
    
      }
+
     catch {
       case e: Throwable => log(e.getMessage)
         val des_error = "ERROR: Se presenta excepcion al ejecutar proceso: " + e.getMessage

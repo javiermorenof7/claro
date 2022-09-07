@@ -40,10 +40,13 @@ object App {
     val database: String = parametros.get('database).get.toString
     val repo_sisnot = ambiente_sisnot_notificaciones + " " + sisnot_repositorio
     val V_DIAS_ATRASO: String = parametros.get('V_DIAS_ATRASO).get.toString
-    
+    val V_0080_BAN_REPROCESO: String = parametros.get('V_0080_BAN_REPROCESO).get.toString
+    val V_0080_FEC_REPROCESO: String = parametros.get('V_0080_FEC_REPROCESO).get.toString
+
+    val V_0080_FEC_REPROCESO2=V_0080_FEC_REPROCESO.replace("#","")
+
     val v_fecha="""regexp_replace(to_date((date_sub(current_date,""" + V_DIAS_ATRASO + """))),'-','') """
 
-    
     log(APP_NAME + " Start Process Spark")
     log("id_ejecucion: " + id_ejecucion)
     val spark_configuration = new SparkConf().setAppName(APP_NAME)
@@ -62,52 +65,140 @@ object App {
       //=================================================================================
       //=====Validar si ya se encuentran registros para la fecha de proceso============== 
       //=================================================================================
-       val CantidadReg=ss.sql("""SELECT * from  desarrollo.tbl_fact_dato_qci
+       val CantidadReg=ss.sql("""SELECT * from  """ + database + """.tbl_fact_dato_qci
                               WHERE sk_fec_trafico =""" + v_fecha )
 
-       if (CantidadReg.count() == 0) {
+      if (V_0080_BAN_REPROCESO == "0" ){                        
+          if (CantidadReg.count() == 0) {
 
-       val APN_DF= ss.sql("""SELECT id_apn, UPPER (apnnetwork) apnnetwork, fecha_actualizacion 
-                          FROM """ + database + """.tbl_dim_apnnetwork_t1""") 
-      //=================================================================================
-      //=====Validar si las dimensiones contienen registros============================== 
-      //=================================================================================
-       if (APN_DF.count() == 0) {
-          println("+\n ALARMA: No se encuentra información en la tabla tbl_dim_apnnetwork_t1 \n+")
-          sys.exit(0)
-       }
+          val APN_DF= ss.sql("""SELECT id_apn, UPPER (apnnetwork) apnnetwork, fecha_actualizacion 
+                              FROM """ + database + """.tbl_dim_apnnetwork_t1""") 
+          //=================================================================================
+          //=====Validar si las dimensiones contienen registros============================== 
+          //=================================================================================
+          if (APN_DF.count() == 0) {
+              println("+\n ALARMA: No se encuentra información en la tabla tbl_dim_apnnetwork_t1 \n+")
+              sys.exit(0)
+          }
 
-       val PLMNI_DF= ss.sql("""SELECT ID_PLMNIDENTIFIER,PLMNIDENTIFIER,FECHA_ACTUALIZACION 
-                          FROM  """ + database + """.tbl_dim_plmnidentifier_t1""") 
+          val PLMNI_DF= ss.sql("""SELECT ID_PLMNIDENTIFIER,PLMNIDENTIFIER,FECHA_ACTUALIZACION 
+                              FROM  """ + database + """.tbl_dim_plmnidentifier_t1""") 
 
-       if (PLMNI_DF.count() == 0) {
-          println("+\n ALARMA: No se encuentra información en la tabla tbl_dim_plmnidentifier_t1 \n+")
-          sys.exit(0)
-       }
+          if (PLMNI_DF.count() == 0) {
+              println("+\n ALARMA: No se encuentra información en la tabla tbl_dim_plmnidentifier_t1 \n+")
+              sys.exit(0)
+          }
 
-      val DatosTrafDF = ss.sql("""SELECT  UPPER (apnnetwork) apnnetwork, plmnidentifier, val_qci VAL_QCI, SUM(uplink) VAL_BYTES_UPLINK, SUM(DOWNLINK) VAL_BYTES_DOWNLINK, ( COALESCE(SUM(uplink),0) + COALESCE(SUM(DOWNLINK),0)) VAL_BYTES_TOTAL,CURRENT_DATE AS FEC_CARGA_DWH ,fecha_trafico SK_FEC_TRAFICO
-                          FROM """ + database + """.tbl_fact_datos_trafico 
-                          WHERE fecha_trafico = """ + v_fecha + """ and plmnidentifier  NOT LIKE '732%' AND (uplink  IS NOT NULL OR DOWNLINK IS NOT NULL) 
-                          group by fecha_trafico, apnnetwork, plmnidentifier, val_qci """)
+          val DatosTrafDF = ss.sql("""SELECT  UPPER (apnnetwork) apnnetwork, plmnidentifier, val_qci VAL_QCI, SUM(uplink) VAL_BYTES_UPLINK, SUM(DOWNLINK) VAL_BYTES_DOWNLINK, ( COALESCE(SUM(uplink),0) + COALESCE(SUM(DOWNLINK),0)) VAL_BYTES_TOTAL,CURRENT_DATE AS FEC_CARGA_DWH ,fecha_trafico SK_FEC_TRAFICO
+                              FROM """ + database + """.tbl_fact_datos_trafico 
+                              WHERE fecha_trafico = """ + v_fecha + """ and plmnidentifier  NOT LIKE '732%' AND (uplink  IS NOT NULL OR DOWNLINK IS NOT NULL) 
+                              group by fecha_trafico, apnnetwork, plmnidentifier, val_qci """)
 
-       DatosTrafDF.createOrReplaceTempView("DatosTraf")
-       APN_DF.createOrReplaceTempView("APN")
+          DatosTrafDF.createOrReplaceTempView("DatosTraf")
+          APN_DF.createOrReplaceTempView("APN")
+          
+          val UNION1_DF = ss.sql("""SELECT A.apnnetwork,b.id_apn, A.plmnidentifier,A.VAL_QCI,A.VAL_BYTES_UPLINK,A.VAL_BYTES_DOWNLINK,A.VAL_BYTES_TOTAL,A.FEC_CARGA_DWH ,A.SK_FEC_TRAFICO
+                                    FROM DatosTraf A 
+                                    LEFT JOIN APN  B ON A.apnnetwork = B.apnnetwork """)
+          
+          val UNION2_DF = UNION1_DF.join(PLMNI_DF,UNION1_DF("plmnidentifier") === PLMNI_DF("plmnidentifier"),"left").drop("DESCRIPCION_PLMNIDENTIFIER").drop("FECHA_ACTUALIZACION").drop("PLMNIDENTIFIER").drop("apnnetwork")
+          UNION2_DF.createOrReplaceTempView("UNION2")
+
+          val DF_FINAL = ss.sql("""INSERT Into """ + database + """.tbl_fact_dato_qci
+                                    SELECT id_apn, ID_PLMNIDENTIFIER ,VAL_QCI,VAL_BYTES_UPLINK,VAL_BYTES_DOWNLINK,VAL_BYTES_TOTAL,FEC_CARGA_DWH ,SK_FEC_TRAFICO 
+                                    FROM UNION2""")
+
+          }
+          else {
+            println("+\n ALARMA: Se encuentra información para la fecha de trafico a procesar \n+")
+          }
+    }
+    else {
+
+          println("+\n+\n+\n+\n Inicio reproceso \n+\n+\n+\n+")
+
+          val reproceso=ss.sql ("""ALTER TABLE """ + database + """.tbl_fact_dato_qci DROP IF EXISTS PARTITION(sk_fec_trafico='"""+ V_0080_FEC_REPROCESO2 +"""')""")
+
+          if (CantidadReg.count() == 0) {
+                  val APN_DF= ss.sql("""SELECT id_apn, UPPER (apnnetwork) apnnetwork, fecha_actualizacion 
+                                      FROM """ + database + """.tbl_dim_apnnetwork_t1""") 
+                  //=================================================================================
+                  //=====Validar si las dimensiones contienen registros============================== 
+                  //=================================================================================
+                  if (APN_DF.count() == 0) {
+                      println("+\n ALARMA: No se encuentra información en la tabla tbl_dim_apnnetwork_t1 \n+")
+                      sys.exit(0)
+                  }
+
+                  val PLMNI_DF= ss.sql("""SELECT ID_PLMNIDENTIFIER,PLMNIDENTIFIER,FECHA_ACTUALIZACION 
+                                      FROM  """ + database + """.tbl_dim_plmnidentifier_t1""") 
+
+                  if (PLMNI_DF.count() == 0) {
+                      println("+\n ALARMA: No se encuentra información en la tabla tbl_dim_plmnidentifier_t1 \n+")
+                      sys.exit(0)
+                  }
+
+                  val DatosTrafDF = ss.sql("""SELECT  UPPER (apnnetwork) apnnetwork, plmnidentifier, val_qci VAL_QCI, SUM(uplink) VAL_BYTES_UPLINK, SUM(DOWNLINK) VAL_BYTES_DOWNLINK, ( COALESCE(SUM(uplink),0) + COALESCE(SUM(DOWNLINK),0)) VAL_BYTES_TOTAL,CURRENT_DATE AS FEC_CARGA_DWH ,fecha_trafico SK_FEC_TRAFICO
+                                      FROM """ + database + """.tbl_fact_datos_trafico 
+                                      WHERE (fecha_trafico = '""" + V_0080_FEC_REPROCESO2 + """' or fecha_trafico = """+ v_fecha + """ ) and plmnidentifier  NOT LIKE '732%' AND (uplink  IS NOT NULL OR DOWNLINK IS NOT NULL) 
+                                      group by fecha_trafico, apnnetwork, plmnidentifier, val_qci """)
+
+                  DatosTrafDF.createOrReplaceTempView("DatosTraf")
+                  APN_DF.createOrReplaceTempView("APN")
+                  
+                  val UNION1_DF = ss.sql("""SELECT A.apnnetwork,b.id_apn, A.plmnidentifier,A.VAL_QCI,A.VAL_BYTES_UPLINK,A.VAL_BYTES_DOWNLINK,A.VAL_BYTES_TOTAL,A.FEC_CARGA_DWH ,A.SK_FEC_TRAFICO
+                                            FROM DatosTraf A 
+                                            LEFT JOIN APN  B ON A.apnnetwork = B.apnnetwork """)
+                  
+                  val UNION2_DF = UNION1_DF.join(PLMNI_DF,UNION1_DF("plmnidentifier") === PLMNI_DF("plmnidentifier"),"left").drop("DESCRIPCION_PLMNIDENTIFIER").drop("FECHA_ACTUALIZACION").drop("PLMNIDENTIFIER").drop("apnnetwork")
+                  UNION2_DF.createOrReplaceTempView("UNION2")
+
+                  val DF_FINAL = ss.sql("""INSERT Into """ + database + """.tbl_fact_dato_qci
+                                            SELECT id_apn, ID_PLMNIDENTIFIER ,VAL_QCI,VAL_BYTES_UPLINK,VAL_BYTES_DOWNLINK,VAL_BYTES_TOTAL,FEC_CARGA_DWH ,SK_FEC_TRAFICO 
+                                            FROM UNION2""")
+          }
+          else {
+                  val reproceso=ss.sql ("""ALTER TABLE """ + database + """.tbl_fact_dato_qci DROP IF EXISTS PARTITION(sk_fec_trafico='"""+ V_0080_FEC_REPROCESO2 +"""')""")
+
+                  val APN_DF= ss.sql("""SELECT id_apn, UPPER (apnnetwork) apnnetwork, fecha_actualizacion 
+                                      FROM """ + database + """.tbl_dim_apnnetwork_t1""") 
+                  //=================================================================================
+                  //=====Validar si las dimensiones contienen registros============================== 
+                  //=================================================================================
+                  if (APN_DF.count() == 0) {
+                      println("+\n ALARMA: No se encuentra información en la tabla tbl_dim_apnnetwork_t1 \n+")
+                      sys.exit(0)
+                  }
+
+                  val PLMNI_DF= ss.sql("""SELECT ID_PLMNIDENTIFIER,PLMNIDENTIFIER,FECHA_ACTUALIZACION 
+                                      FROM  """ + database + """.tbl_dim_plmnidentifier_t1""") 
+
+                  if (PLMNI_DF.count() == 0) {
+                      println("+\n ALARMA: No se encuentra información en la tabla tbl_dim_plmnidentifier_t1 \n+")
+                      sys.exit(0)
+                  }
+
+                  val DatosTrafDF = ss.sql("""SELECT  UPPER (apnnetwork) apnnetwork, plmnidentifier, val_qci VAL_QCI, SUM(uplink) VAL_BYTES_UPLINK, SUM(DOWNLINK) VAL_BYTES_DOWNLINK, ( COALESCE(SUM(uplink),0) + COALESCE(SUM(DOWNLINK),0)) VAL_BYTES_TOTAL,CURRENT_DATE AS FEC_CARGA_DWH ,fecha_trafico SK_FEC_TRAFICO
+                                      FROM """ + database + """.tbl_fact_datos_trafico 
+                                      WHERE fecha_trafico = '""" + V_0080_FEC_REPROCESO2 + """' and plmnidentifier  NOT LIKE '732%' AND (uplink  IS NOT NULL OR DOWNLINK IS NOT NULL) 
+                                      group by fecha_trafico, apnnetwork, plmnidentifier, val_qci """)
+
+                  DatosTrafDF.createOrReplaceTempView("DatosTraf")
+                  APN_DF.createOrReplaceTempView("APN")
+                  
+                  val UNION1_DF = ss.sql("""SELECT A.apnnetwork,b.id_apn, A.plmnidentifier,A.VAL_QCI,A.VAL_BYTES_UPLINK,A.VAL_BYTES_DOWNLINK,A.VAL_BYTES_TOTAL,A.FEC_CARGA_DWH ,A.SK_FEC_TRAFICO
+                                            FROM DatosTraf A 
+                                            LEFT JOIN APN  B ON A.apnnetwork = B.apnnetwork """)
+                  
+                  val UNION2_DF = UNION1_DF.join(PLMNI_DF,UNION1_DF("plmnidentifier") === PLMNI_DF("plmnidentifier"),"left").drop("DESCRIPCION_PLMNIDENTIFIER").drop("FECHA_ACTUALIZACION").drop("PLMNIDENTIFIER").drop("apnnetwork")
+                  UNION2_DF.createOrReplaceTempView("UNION2")
+
+                  val DF_FINAL = ss.sql("""INSERT Into """ + database + """.tbl_fact_dato_qci
+                                            SELECT id_apn, ID_PLMNIDENTIFIER ,VAL_QCI,VAL_BYTES_UPLINK,VAL_BYTES_DOWNLINK,VAL_BYTES_TOTAL,FEC_CARGA_DWH ,SK_FEC_TRAFICO 
+                                            FROM UNION2""")
        
-       val UNION1_DF = ss.sql("""SELECT A.apnnetwork,b.id_apn, A.plmnidentifier,A.VAL_QCI,A.VAL_BYTES_UPLINK,A.VAL_BYTES_DOWNLINK,A.VAL_BYTES_TOTAL,A.FEC_CARGA_DWH ,A.SK_FEC_TRAFICO
-                                FROM DatosTraf A 
-                                LEFT JOIN APN  B ON A.apnnetwork = B.apnnetwork """)
-       
-       val UNION2_DF = UNION1_DF.join(PLMNI_DF,UNION1_DF("plmnidentifier") === PLMNI_DF("plmnidentifier"),"left").drop("DESCRIPCION_PLMNIDENTIFIER").drop("FECHA_ACTUALIZACION").drop("PLMNIDENTIFIER").drop("apnnetwork")
-       UNION2_DF.createOrReplaceTempView("UNION2")
-
-       val DF_FINAL = ss.sql("""INSERT Into desarrollo.tbl_fact_dato_qci
-                                SELECT id_apn, ID_PLMNIDENTIFIER ,VAL_QCI,VAL_BYTES_UPLINK,VAL_BYTES_DOWNLINK,VAL_BYTES_TOTAL,FEC_CARGA_DWH ,SK_FEC_TRAFICO 
-                                FROM UNION2""")
-
-      }
-      else {
-        println("+\n ALARMA: Se encuentra información para la fecha de trafico a procesar \n+")
-      }
+          }
+    }
 
       fin_proceso(path_ejecuta_escenario, repo_sisnot, job_name)
       log(APP_NAME + " End Process Spark")

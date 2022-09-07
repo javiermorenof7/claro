@@ -25,6 +25,11 @@ object parameters {
       case "--fecha_proceso" :: value :: tail => getOptionMovilesMap(map ++ mutable.HashMap('fecha_proceso -> value.trim), tail)
       case "--id_ejecucion" :: value :: tail => getOptionMovilesMap(map ++ mutable.HashMap('id_ejecucion -> value.trim), tail)
       case "--database" :: value :: tail => getOptionMovilesMap(map ++ mutable.HashMap('database -> value.trim), tail)
+      case "--V_DIAS_ATRASO" :: value :: tail => getOptionMovilesMap(map ++ mutable.HashMap('V_DIAS_ATRASO -> value.trim), tail)
+      case "--V_0080_BAN_REPROCESO" :: value :: tail => getOptionMovilesMap(map ++ mutable.HashMap('V_0080_BAN_REPROCESO -> value.trim), tail)
+      case "--V_0080_FEC_REPROCESO" :: value :: tail => getOptionMovilesMap(map ++ mutable.HashMap('V_0080_FEC_REPROCESO -> value.trim), tail)
+
+      
       case option :: _ => println("Unknown option " + option)
         sys.exit(1)
     }

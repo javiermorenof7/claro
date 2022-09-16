@@ -158,9 +158,17 @@ WHERE FK_PROC_OPER  = 43509
 
 
 ----------------------QUERY VISTA -----------------------------------------------
-CREATE OR REPLACE VIEW  desarrollo.vw_tbl_dim_tiempo
-AS 
-
-select date_key ,full_date ,day_name ,`month` ,month_name ,`year`,yearmo ,inicio_fin_semana,day_of_week,week_begin_date  
-from drasdwh.tbl_dim_tiempo
-where full_date BETWEEN  (select to_date((date_sub(current_date,90))))  and (select to_date((date_sub(current_date,1))))
+CREATE OR REPLACE VIEW `drasdwh.vw_tbl_dim_tiempo` AS
+select
+    `a`.`date_key` ,
+    `a`.`full_date`,
+    `a`.`month` ,
+    `a`.`month_name` ,
+    `a`.`year`,
+    `a`.`yearmo`
+from
+    `drasdwh`.`tbl_dim_tiempo` as `a`
+inner join (
+    select DISTINCT `tbl_fact_dato_qci`.`sk_fec_trafico`
+    from `datos`.`tbl_fact_dato_qci` ) `b` on
+    `a`.`date_key` = `b`.`sk_fec_trafico`;

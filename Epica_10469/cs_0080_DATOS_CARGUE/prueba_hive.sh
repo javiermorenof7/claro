@@ -66,23 +66,24 @@ TRUNCATE TABLE tmp_tbl_fact_datos_trafico_pruebas
 
 #Tabla fisica TBL_FACT_DATOS_QCI_PRUEBAS
 
-CREATE TABLE `desarrollo.tbl_fact_dato_qci`(
-  `sk_apn` smallint, 
-  `sk_plmnidentifier` smallint, 
-  `val_qci` smallint, 
-  `val_bytes_uplink` bigint, 
-  `val_bytes_downlink` bigint, 
-  `val_bytes_total` bigint, 
-  `fec_carga_dwh` string,
+CREATE TABLE `datos.tbl_fact_dato_qci`(
+  `sk_apn` smallint,
+  `sk_plmnidentifier` smallint,
+  `cod_qci` smallint,
+  `val_bytes_uplink` bigint,
+  `val_bytes_downlink` bigint,
+  `val_bytes_total` bigint,
+  `fec_carga_dwh` string)
+PARTITIONED BY (
   `sk_fec_trafico` int)
-ROW FORMAT SERDE 
-  'org.apache.hadoop.hive.ql.io.orc.OrcSerde' 
-STORED AS INPUTFORMAT 
-  'org.apache.hadoop.hive.ql.io.orc.OrcInputFormat' 
-OUTPUTFORMAT 
+ROW FORMAT SERDE
+  'org.apache.hadoop.hive.ql.io.orc.OrcSerde'
+STORED AS INPUTFORMAT
+  'org.apache.hadoop.hive.ql.io.orc.OrcInputFormat'
+OUTPUTFORMAT
   'org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat'
 TBLPROPERTIES (
-  'bucketing_version'='2', 
+  'bucketing_version'='2',
   'transactional'='false');
 
 #tabla remporal
